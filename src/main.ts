@@ -4,26 +4,30 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
 
 const server = express();
+let isAppInitialized = false;
 
-async function createServer() {
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
-  app.enableCors();
-  await app.init();
+async function bootstrapServerless() {
+  if (!isAppInitialized) {
+    const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+    app.enableCors();
+    await app.init();
+    isAppInitialized = true;
+  }
   return server;
 }
 
-// Handler untuk Vercel Serverless Function
+// Handler khusus untuk Vercel Serverless Function
 export default async (req: any, res: any) => {
-  await createServer();
+  await bootstrapServerless();
   return server(req, res);
 };
 
-// Jalankan server HTTP biasa untuk lingkungan pengembangan lokal (npm run start:dev)
+// Jalankan server HTTP biasa jika dijalankan secara lokal (npm run start:dev)
 if (process.env.NODE_ENV !== 'production') {
-  async function bootstrap() {
+  async function bootstrapLocal() {
     const app = await NestFactory.create(AppModule);
     app.enableCors();
     await app.listen(process.env.PORT ?? 3000);
   }
-  bootstrap();
+  bootstrapLocal();
 }
