@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module.js';
 import { MasterModule } from './master/master.module.js';
-import { ChecklistModule } from './checklist/checklist.module.js'; // <-- Import AuthModule
+import { ChecklistModule } from './checklist/checklist.module.js';
 
 @Module({
   imports: [
@@ -12,19 +12,21 @@ import { ChecklistModule } from './checklist/checklist.module.js'; // <-- Import
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('DB_HOST'),
-        port: parseInt(configService.get<string>('DB_PORT', '5432'), 10),
-        username: configService.get<string>('DB_USER'),
-        password: String(configService.get<string>('DB_PASSWORD', '')),
-        database: configService.get<string>('DB_NAME'),
+        // Menggunakan URL langsung dari DATABASE_URL Neon
+        url: configService.get<string>('DATABASE_URL'),
         autoLoadEntities: true,
-        synchronize: false,
+        // Diubah ke true sementara agar TypeORM otomatis membuatkan tabel di Neon
+        synchronize: true,
+        // Wajib ditambahkan untuk koneksi SSL Neon
+        ssl: {
+          rejectUnauthorized: false,
+        },
       }),
       inject: [ConfigService],
     }),
     AuthModule,
     MasterModule,
-    ChecklistModule, // <-- Daftarkan di sini
+    ChecklistModule,
   ],
 })
 export class AppModule { }
