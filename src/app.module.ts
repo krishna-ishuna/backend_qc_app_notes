@@ -12,14 +12,18 @@ import { ChecklistModule } from './checklist/checklist.module.js';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        // Menggunakan URL langsung dari DATABASE_URL Neon
         url: configService.get<string>('DATABASE_URL'),
         autoLoadEntities: true,
-        // Diubah ke true sementara agar TypeORM otomatis membuatkan tabel di Neon
-        synchronize: true,
-        // Wajib ditambahkan untuk koneksi SSL Neon
+        // Diubah ke false karena tabel & data sudah lengkap di Neon
+        synchronize: false,
         ssl: {
           rejectUnauthorized: false,
+        },
+        // Wajib ditambahkan agar driver 'pg' di lingkungan Vercel tidak menolak koneksi SSL Neon
+        extra: {
+          ssl: {
+            rejectUnauthorized: false,
+          },
         },
       }),
       inject: [ConfigService],
