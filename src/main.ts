@@ -16,7 +16,18 @@ async function bootstrapServerless() {
   return server;
 }
 
+// Handler WAJIB untuk Vercel Serverless Function
 export default async (req: any, res: any) => {
   await bootstrapServerless();
   return server(req, res);
 };
+
+// Mode lokal (npm run start:dev)
+if (process.env.NODE_ENV !== 'production') {
+  async function bootstrapLocal() {
+    const app = await NestFactory.create(AppModule);
+    app.enableCors();
+    await app.listen(process.env.PORT ?? 3000);
+  }
+  bootstrapLocal();
+}
